@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Align title in the center -->
+    <title >Device Status</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .highlight {
+            background-color: yellow;
+            transition: background-color 2s ease-out;
+        }
+        h1 {
+            text-align: center; /* Center-align the title */
+        }
+    </style>
+</head>
+<body>
+    <h1>Device Status</h1>
+    <table id="device-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>State</th>
+                <th>Room</th>
+                <th>Room ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data rows will be populated here -->
+        </tbody>
+    </table>
+
+    <script>
+        let previousData = {};
+
+        async function fetchData() {
+            const response = await fetch('http://localhost:8000/devices');
+            const data = await response.json();
+            const tableBody = document.querySelector('#device-table tbody');
+
+            data.forEach((device, index) => {
+                const uniqueKey = `${device.name}-${device.room_id}`;
+                let row = tableBody.rows[index];
+                
+                // If the row doesn't exist, create it
+                if (!row) {
+                    row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${device.name}</td>
+                        <td>${device.state}</td>
+                        <td>${device.room_name}</td>
+                        <td>${device.room_id}</td>
+                    `;
+                    tableBody.appendChild(row);
+                } else {
+                    // Update existing row
+                    const stateCell = row.cells[1];
+                    
+                    if (previousData[uniqueKey] !== device.state) {
+                        stateCell.classList.add('highlight');
+                        setTimeout(() => {
+                            stateCell.classList.remove('highlight');
+                        }, 2000);
+                    }
+
+                    row.cells[0].textContent = device.name;
+                    row.cells[1].textContent = device.state;
+                    row.cells[2].textContent = device.room_name;
+                    row.cells[3].textContent = device.room_id;
+                }
+
+                // Update the previous data
+                previousData[uniqueKey] = device.state;
+            });
+
+            // Remove extra rows if the new data has fewer devices
+            while (tableBody.rows.length > data.length) {
+                tableBody.deleteRow(-1);
+            }
+        }
+
+        setInterval(fetchData, 5000); // Update every 5 seconds
+        fetchData(); // Initial fetch on page load
+    </script>
+</body>
+</html>
