@@ -34,7 +34,7 @@
                 <th>Name</th>
                 <th>State</th>
                 <th>Room</th>
-                <th>Room ID</th>
+                <!-- <th>Room ID</th> -->
             </tr>
         </thead>
         <tbody>
@@ -61,7 +61,6 @@
                         <td>${device.name}</td>
                         <td>${device.state}</td>
                         <td>${device.room_name}</td>
-                        <td>${device.room_id}</td>
                     `;
                     tableBody.appendChild(row);
                 } else {
@@ -78,7 +77,7 @@
                     row.cells[0].textContent = device.name;
                     row.cells[1].textContent = device.state;
                     row.cells[2].textContent = device.room_name;
-                    row.cells[3].textContent = device.room_id;
+                    // row.cells[3].textContent = device.room_id;
                 }
 
                 // Update the previous data
