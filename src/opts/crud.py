@@ -28,9 +28,9 @@ def get_all_rooms(session: Session):
     log.debug(f"Fetched rooms {rooms_list}")
     return rooms
 
-def create_device(session: Session, name: str, room_id: str):
-    log.debug(f"Creating device with name: {name}, room_id: {room_id}")
-    device = Device(name=name, room_id=room_id)
+def create_device(session: Session, device_name: str, room_id: str):
+    log.debug(f"Creating device with name: {device_name}, room_id: {room_id}")
+    device = Device(device_name=device_name, room_id=room_id)
     session.add(device)
     session.commit()
     session.refresh(device)
@@ -46,12 +46,12 @@ def create_device(session: Session, name: str, room_id: str):
 def get_all_devices_room_names(room_name: str, session: Session):
     log.debug("Fetching all devices.")
     devices = session.scalars(
-        select(Device).options(joinedload(Device.room)).order_by(Device.room_id, Device.name)
+        select(Device).options(joinedload(Device.room)).order_by(Device.room_id, Device.device_name)
     ).all()
 
     # Adding room name to the device information
     devices_with_room_name = [
-        {"id": device.id, "name": device.name, "room_id": device.room_id, "room_name": device.room.room_name, "state": device.state}
+        {"id": device.id, "device_name": device.device_name, "room_id": device.room_id, "room_name": device.room.room_name, "state": device.state}
         for device in devices
     ]
 
@@ -84,11 +84,14 @@ def toggle_device_state(session: Session, device_name: str, room_name: str, acti
         log.debug(f"Room {room_name} found with ID: {room.id}")
     # Fetch the device from the database
 
+    if device_name=="":
+        log.error(f"Device name cannot be empty.")
+        raise HTTPException(status_code=404, detail=f"Device name cannot be empty.")
    
     devices = session.scalars(
         select(Device)
         .where(Device.room_id == room.id)
-        .where(func.lower(Device.name) == device_name.lower() if device_name else True)
+        .where(func.lower(Device.device_name) == device_name.lower() if device_name else True)
     ).all()
 
     if not devices:
@@ -102,9 +105,9 @@ def toggle_device_state(session: Session, device_name: str, room_name: str, acti
             session.add(device)
             session.commit()
             session.refresh(device)
-            log.info(f"Device {device.name} turned {'on' if desired_state else 'off'} in room {room_name}.")
+            log.info(f"Device {device.device_name} turned {'on' if desired_state else 'off'} in room {room_name}.")
         else:
-            log.info(f"Device {device.name} is already {'on' if desired_state else 'off'} in room {room_name}.")
+            log.info(f"Device {device.device_name} is already {'on' if desired_state else 'off'} in room {room_name}.")
     return devices
 
 def setup_database_from_csv(session: Session, csv_file_path: str):
@@ -124,6 +127,6 @@ def setup_database_from_csv(session: Session, csv_file_path: str):
 
             # Create the device
             log.debug(f"Adding device '{device_name}' to room '{room_name}' with status 'off'.")
-            create_device(session, name=device_name, room_id=room.id)
+            create_device(session, device_name=device_name, room_id=room.id)
 
     log.info("Database setup from CSV file completed.")

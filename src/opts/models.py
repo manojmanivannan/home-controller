@@ -8,7 +8,7 @@ class Room(SQLModel, table=True):
 
 class Device(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True, sa_column_kwargs={"autoincrement": True})
-    name: str
+    device_name: str
     state: bool = Field(default=False)  # False: Off, True: On
     room_id: int = Field(foreign_key="room.id")
     room: Optional[Room] = Relationship(back_populates="devices")

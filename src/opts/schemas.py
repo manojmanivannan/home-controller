@@ -14,7 +14,7 @@ class DeviceCreate(BaseModel):
 
 class DeviceRead(BaseModel):
     id: int
-    name: str
+    device_name: str
     state: bool
     room_id: int
     room_name: str = None

@@ -15,9 +15,9 @@ def get_session():
 
 @router.post("/", response_model=DeviceRead)
 def add_device(device: DeviceCreate, session: Session = Depends(get_session)):
-    log.info(f"Received request to add device: {device.name}")
+    log.info(f"Received request to add device: {device.device_name}")
     try:
-        return create_device(session, device.name, device.room_id)
+        return create_device(session, device.device_name, device.room_id)
     except Exception as e:
         log.error(f"Error adding device: {e}")
         raise HTTPException(status_code=500, detail=f"Error adding device.{e}")
