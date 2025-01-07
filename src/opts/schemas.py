@@ -6,19 +6,11 @@ class RoomCreate(BaseModel):
 
 class RoomRead(BaseModel):
     id: int
-    name: str
+    room_name: str
 
 class DeviceCreate(BaseModel):
     name: str
-    room_id: str
-    
-    @field_validator('room_id')
-    def room_id_must_be_integer(cls, v):
-        try:
-            int(v)
-        except ValueError:
-            raise ValueError('room_id must be an integer, use get-rooms-list to know the room_id ')
-        return v
+    room_name: str
 
 class DeviceRead(BaseModel):
     id: int

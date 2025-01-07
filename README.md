@@ -7,7 +7,7 @@ This project is a simple home automation server built with FastAPI. It allows yo
 - Add new devices to rooms
 - List all devices, optionally filtered by room
 - Turn on/off individual devices
-- Turn off all devices in a room (TODO)
+- Turn on/off all devices in a room
 - Turn off all devices in the home (TODO)
 
 
@@ -15,7 +15,7 @@ This project is a simple home automation server built with FastAPI. It allows yo
 
 ### Prerequisites
 
-- Python 3.11.8
+- Python 3.11.9
 - Docker
 - Docker Compose
 
@@ -47,45 +47,12 @@ This project is a simple home automation server built with FastAPI. It allows yo
 
 2. The server will be available at `http://localhost:8000`.
 
-### API Endpoints
-
-- **List Devices**
-  - `GET /devices/`
-  - Response: List of devices
-
-- **Add Device**
-  - `POST /devices/`
-  - Request Body: `DeviceCreate`
-  - Response: `DeviceRead`
-
-- **Turn On Device**
-  - `POST /turnon/`
-  - Request Body: `DeviceCreate`
-  - Response: `DeviceRead`
-
-- **Turn Off Device**
-  - `POST /turnoff/`
-  - Request Body: `DeviceCreate`
-  - Response: `DeviceRead`
-
-- **List Rooms**
-  - `GET /rooms/`
-  - Response: List of rooms
-
-- **Add Room**
-  - `POST /rooms/`
-  - Request Body: `RoomCreate`
-  - Response: `RoomRead`
-
 ### Frontend
 
 The frontend is a simple HTML page that displays the status of devices. It is served by an Nginx container.
 
 1. The frontend will be available at `http://localhost:3000`.
 
-### Logging
-
-Logging is configured using the `logging.conf` file in the `src/common` directory. Logs are output to the console.
 
 ### Database
 

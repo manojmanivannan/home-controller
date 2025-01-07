@@ -13,7 +13,7 @@ logger = logging.getLogger("crud")
 
 def create_room(session: Session, name: str):
     log.debug(f"Creating room with name: {name}")
-    room = Room(name=name)
+    room = Room(room_name=name)
     session.add(room)
     session.commit()
     session.refresh(room)
@@ -24,7 +24,7 @@ def get_all_rooms(session: Session):
     log.debug("Fetching all rooms.")
     rooms = session.scalars(select(Room)).all()
     log.info(f"Fetched {len(rooms)} rooms.")
-    rooms_list = [{'id':room.id,'name':room.name} for room in rooms]
+    rooms_list = [{'id':room.id,'name':room.room_name} for room in rooms]
     log.debug(f"Fetched rooms {rooms_list}")
     return rooms
 
@@ -51,7 +51,7 @@ def get_all_devices_room_names(room_name: str, session: Session):
 
     # Adding room name to the device information
     devices_with_room_name = [
-        {"id": device.id, "name": device.name, "room_id": device.room_id, "room_name": device.room.name, "state": device.state}
+        {"id": device.id, "name": device.name, "room_id": device.room_id, "room_name": device.room.room_name, "state": device.state}
         for device in devices
     ]
 
@@ -69,37 +69,43 @@ def get_all_devices_room_names(room_name: str, session: Session):
         raise HTTPException(status_code=404, detail=f"No devices found in room '{room_name}'. Check if the room name is correct.")
     return devices_with_room_name
 
-def toggle_device_state(session: Session, device_name: str, room_id: str, action: str):
-    log.debug(f"Turning {action.capitalize()} {device_name} in room ID {room_id}")
+def toggle_device_state(session: Session, device_name: str, room_name: str, action: str):
+    log.debug(f"Turning {action.capitalize()} {'all devices' if not device_name else device_name} in room '{room_name}'")
 
-    # Fetch the device from the database
-    device = session.scalars(
-        select(Device).where(func.lower(Device.name) == device_name.lower()).where(Device.room_id == int(room_id))
-    ).first()
-
-    if not device:
-        log.error(f"Device {device_name} not found in room ID {room_id}.")
-        raise HTTPException(status_code=404, detail=f"Device {device_name} not found in room ID {room_id}.")
-
+    # find if the room exists
     room = session.scalars(
-        select(Room).where(Room.id == room_id)
+        select(Room).where(func.lower(Room.room_name) == room_name.lower())
     ).first()
-    
-    # Determine the desired state based on action
+
+    if not room:
+        log.error(f"Room {room_name} not found.")
+        raise HTTPException(status_code=404, detail=f"Room {room_name} not found.")
+    else:
+        log.debug(f"Room {room_name} found with ID: {room.id}")
+    # Fetch the device from the database
+
+   
+    devices = session.scalars(
+        select(Device)
+        .where(Device.room_id == room.id)
+        .where(func.lower(Device.name) == device_name.lower() if device_name else True)
+    ).all()
+
+    if not devices:
+        log.error(f"No devices {device_name if device_name else None} found in room '{room_name}'.")
+        raise HTTPException(status_code=404, detail=f"No devices {device_name if device_name else None} found in room '{room_name}'.")
+
     desired_state = action.lower() == "on"
-
-    if device.state == desired_state:
-        log.info(f"Device {device_name} is already {'on' if desired_state else 'off'} in {room.name} (room_id: {room_id}).")
-        return device
-
-    # Update the device's state
-    device.state = desired_state
-    session.add(device)
-    session.commit()
-    session.refresh(device)
-
-    log.info(f"Device {device_name} turned {'on' if desired_state else 'off'} in {room.name} (room_id: {room_id}).")
-    return device
+    for device in devices:
+        if device.state != desired_state:
+            device.state = desired_state
+            session.add(device)
+            session.commit()
+            session.refresh(device)
+            log.info(f"Device {device.name} turned {'on' if desired_state else 'off'} in room {room_name}.")
+        else:
+            log.info(f"Device {device.name} is already {'on' if desired_state else 'off'} in room {room_name}.")
+    return devices
 
 def setup_database_from_csv(session: Session, csv_file_path: str):
     log.info(f"Setting up database from CSV file: {csv_file_path}")
@@ -111,7 +117,7 @@ def setup_database_from_csv(session: Session, csv_file_path: str):
             # status = row["status"].lower() == "on"
 
             # Check if room exists, create if not
-            room = session.scalars(select(Room).where(Room.name == room_name)).first()
+            room = session.scalars(select(Room).where(Room.room_name == room_name)).first()
             if not room:
                 log.debug(f"Room '{room_name}' not found. Creating new room.")
                 room = create_room(session, room_name)
