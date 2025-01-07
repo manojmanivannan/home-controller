@@ -4,9 +4,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routers import rooms, devices, turn_on_off
 from .opts.database import create_db_and_tables
 
+description = """
+This is a Home Automation Server API built with FastAPI. 
+It allows users to manage rooms and devices in a home automation system. 
+The API supports operations to turn devices on and off. 
+The database and tables are created on application startup.
+"""
 
+app = FastAPI(
+    title="Home Automation Server",
+    docs_url="/swagger", 
+    description=description,
+    openapi_url="/api/v1/openapi.json",
+    defaultModelRendering=["example*", "model"],  # ["example", "model"]"example", "model"],
+    defaultModelExpandDepth=5,
 
-app = FastAPI()
+    )
 
 # Allow all origins (you can restrict this to specific origins for production)
 app.add_middleware(

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List
 
 class RoomCreate(BaseModel):
@@ -6,15 +6,15 @@ class RoomCreate(BaseModel):
 
 class RoomRead(BaseModel):
     id: int
-    name: str
+    room_name: str
 
 class DeviceCreate(BaseModel):
     name: str
-    room_id: int
+    room_name: str
 
 class DeviceRead(BaseModel):
     id: int
-    name: str
+    device_name: str
     state: bool
     room_id: int
     room_name: str = None
