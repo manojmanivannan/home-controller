@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List
 
 class RoomCreate(BaseModel):
@@ -10,7 +10,15 @@ class RoomRead(BaseModel):
 
 class DeviceCreate(BaseModel):
     name: str
-    room_id: int
+    room_id: str
+    
+    @field_validator('room_id')
+    def room_id_must_be_integer(cls, v):
+        try:
+            int(v)
+        except ValueError:
+            raise ValueError('room_id must be an integer, use get-rooms-list to know the room_id ')
+        return v
 
 class DeviceRead(BaseModel):
     id: int
